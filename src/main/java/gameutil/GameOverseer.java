@@ -4,52 +4,89 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.Scanner;
 
 public class GameOverseer {
-    public int number;
-    public int attempts;
-    public int prevGuess;
-    public String playerName;
-    public Scanner scan;
+    private int number;
+    private int attempts;
+    private final String playerName;
 
-    public GameOverseer(String name) {
+    public GameOverseer() {
         // Sets the random value between 1 and 20 for the player to guess
         this.number = ThreadLocalRandom.current().nextInt(1, 21);
         this.attempts = 1;
-        // Prior to any attempt, prevAttempt will be 0
-        this.prevGuess = 0;
-        this.playerName = name;
-        this.scan = new Scanner(System.in);
+        this.playerName = scanForPlayerName();
+    }
+
+    public int getNumber() {
+        return number;
+    }
+    public void setNumber(int n) {
+        this.number = n;
+    }
+    public int getAttempts() {
+        return attempts;
+    }
+    public void setAttempts(int n) {
+        this.attempts = n;
+    }
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    private static String scanForPlayerName() {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\nHello, what is your name?\n");
+
+        String name = "";
+        while (name.isBlank()) {
+            try {
+                name = sc.nextLine();
+            } catch (Exception e) {
+                System.out.println("\tretrievePlayerName failed with exception: " + e);
+            }
+            if (name.isBlank()) System.out.println("\nNo name was detected... What is your name?\n");
+        }
+
+        return name;
+    }
+
+    public int scanForGuess() {
+        Scanner sc = new Scanner(System.in);
+
+        int guess = Integer.MIN_VALUE;
+        while (guess < 1 || guess > 20) {
+            try {
+                guess = sc.nextInt();
+                if (guess < 1 || guess > 20) {
+                    throw new Exception();
+                }
+            } catch (Exception e) {
+                System.out.println("\nInvalid input detected... Please enter a number between 1 and 20.\n");
+                sc.next();
+            }
+        }
+
+        return guess;
     }
 
     public boolean isCorrect(int num) {
-        if (num == this.number) return true;
-        else return false;
+        return num == number;
     }
 
-    public String guess(int num) {
-        do {
-            if (this.prevGuess < this.number) {
-                System.out.println("\nYour guess is too low.\nTake a guess.\n");
-                System.out.println(
-                        String.format("Attempts: %d, Number: %d", this.attempts, this.number)
-                );
-            } else if (this.prevGuess > this.number) {
-                System.out.println("\nYour guess is too high.\nTake a guess.\n");
+    public boolean wantToPlayAgain() {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\nWould you like to play again? (y or n)\n");
+
+        while (true) {
+            try {
+                String line = sc.nextLine();
+                if (line.equals("y") || line.equals("Y")) return true;
+                else if (line.equals("n") || line.equals("N")) return false;
+                else throw new Exception();
+            } catch (Exception e) {
+                System.out.println("\nInvalid input detected. Please input (y) or (n).");
             }
-            this.attempts++;
-            this.prevGuess = this.scan.nextInt();
-        } while (this.prevGuess != this.number && this.attempts < 6);
-        if (this.attempts < 6) {
-            this.prevGuess = 0;
-            this.attempts = 1;
-            this.number = ThreadLocalRandom.current().nextInt(1, 21);
-            return String.format(
-                    "\nGood job, %s! You guess my number in %d guesses!", this.playerName, this.attempts);
-        } else {
-            this.prevGuess = 0;
-            this.attempts = 1;
-            this.number = ThreadLocalRandom.current().nextInt(1, 21);
-            return String.format(
-                    "Sorry, %s, you only had six guesses...", this.playerName);
         }
     }
 }
+

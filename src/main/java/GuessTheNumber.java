@@ -3,32 +3,46 @@ import java.util.Scanner;
 
 public class GuessTheNumber {
     public static void main(String[] args) {
-        Scanner mainScan = new Scanner(System.in);
-
-        System.out.println("Hello! What is your name?\n");
-        String name = mainScan.nextLine();
-
-        GameOverseer game = new GameOverseer(name);
 
         boolean playingGame = true;
+        while (playingGame) {
+            GameOverseer game = new GameOverseer();
 
-        do {
-            System.out.println(String.format(
-                    "\nWell, %s, I am thinking of a number between 1 and 20.\nTake a guess.\n", name));
+            System.out.println("\nWell, %s, I am thinking of a number between 1 and 20.\nTake a guess.\n"
+                    .formatted(game.getPlayerName()));
 
-            int firstGuess = mainScan.nextInt();
-            game.guess(firstGuess);
+            while (game.getAttempts() <= 6) {
+                int guess = game.scanForGuess();
+
+                if (game.isCorrect(guess)) { // Correct guess is made
+                    if (game.getAttempts() == 1) {
+                        System.out.println("\nCongratulations, %s! You guess the number on your first try!\n"
+                                .formatted(game.getPlayerName()));
+                    } else {
+                        System.out.println("\nCongratulations, %s! You guess the number in %d attempts!\n"
+                                .formatted(game.getPlayerName(), game.getAttempts()));
+                    }
+                    break;
+                } else { // Incorrect guess is made
+                    if (game.getAttempts() > 6) { // Attempts exhausted = loss
+                        System.out.println("Sorry, %s. You only had six guesses. You lose..."
+                                .formatted(game.getPlayerName()));
+                        break;
+                    } else { // Attempts not exhausted; too high or too low?
+                        System.out.println("\nYour guess is too %s.\nTake another guess.\n"
+                                .formatted(guess < game.getNumber() ? "low" : "high"));
+                    }
+                }
+                game.setAttempts(game.getAttempts() + 1); // Increments attempts by one; skipped if won or lost
+            }
 
             // Post failure or completion of the game
-            System.out.println("Would you like to play again? (y or n)\n");
-            Scanner newScan = new Scanner(System.in);
-            char restart = newScan.nextLine().charAt(0);
-            if (restart == 'n' || restart == 'N') {
-                playingGame = false;
-            } else if (restart != 'y' && restart != 'Y') {
-                System.out.println("Unknown input detected... I'll assume you wanted to play again!");
-                System.out.println(String.format("\tInput: %s", restart));
+            playingGame = game.wantToPlayAgain();
+
+            if (!playingGame) { // I think this will prevent memory leaks. Maybe.
+                Scanner sc = new Scanner(System.in);
+                sc.close();
             }
-        } while (playingGame);
+        }
     }
 }
